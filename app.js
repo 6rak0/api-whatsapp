@@ -1,14 +1,16 @@
+const fs = require("fs");
 const express = require("express");
-const { Client } = require("whatsapp-web.js");
-// const qrcode = require("qrcode-terminal");
+const { Client, LocalAuth } = require("whatsapp-web.js");
+//const qrcode = require("qrcode-terminal");
 const { image } = require("qr-image");
 const cors = require("cors");
+const port = 3006;
 
 const generateImage = (base64) => {
     const path = `${process.cwd()}/temp`;
     let qr_svg = image(base64, { type: "svg", margin: 4 });
     qr_svg.pipe(require("fs").createWriteStream(`${path}/qr.svg`));
-    console.log(`qr creado en ${path}`);
+    console.log(`scan code in /qr`);
 };
 
 const sendMsg = async (phone, message) => {
@@ -20,43 +22,42 @@ const sendMsg = async (phone, message) => {
     }
 };
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-const client = new Client();
+const client = new Client({
+    authStrategy: new LocalAuth({
+        clientId: "client-one",
+    }),
+});
 client.on("qr", (qr) => {
     //qrcode.generate(qr, { small: true });
     generateImage(qr);
 });
+client.on("authenticated", () => {
+    console.log("authenticated succesfully");
+});
 client.on("ready", () => {
-    console.log("Client is ready!");
+    console.log("/send-whatsapp endpoint is ready!");
 });
 client.on("message", (msg) => {
     if (msg.body == "!up") {
-        msg.reply("sí, estoy activo");
+        msg.reply("yes, i'm up");
     }
 });
 client.initialize();
 
-// app.post("/post", (req, res) => {
-//     console.log(req.body);
-//     const { phone, message } = req.body;
-//     console.log(phone, message);
-//     res.json({
-//         status: "ok",
-//     });
-// });
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-// app.get('/get', (res) => {
-//     res.json([0,1,2,3,4,5,666])
-// })
-
-app.post("/send-whatsapp", (req, res, next) => {
-    const { phone, message } = req.body;
-    res.json(sendMsg(phone, message));
+app.get("/qr", (req, res) => {
+    res.writeHead(200, { "content-type": "image/svg+xml" });
+    fs.createReadStream(`${__dirname}/temp/qr.svg`).pipe(res);
 });
 
-app.listen(3006, () => {
-    console.log("Server running on port 3006");
+app.post("/send-whatsapp", (req, res) => {
+    const { phone, message } = req.body;
+    res.send(sendMsg(phone, message));
+});
+
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
 });

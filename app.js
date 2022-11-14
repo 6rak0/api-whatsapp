@@ -10,7 +10,7 @@ const generateImage = (base64) => {
     const path = `${process.cwd()}/temp`;
     let qr_svg = image(base64, { type: "svg", margin: 4 });
     qr_svg.pipe(require("fs").createWriteStream(`${path}/qr.svg`));
-    console.log(`scan code in /qr`);
+    console.log(` => scan code in /qr`);
 };
 
 const sendMsg = async (phone, message) => {
@@ -26,16 +26,20 @@ const client = new Client({
     authStrategy: new LocalAuth({
         clientId: "client-one",
     }),
+    puppeteer: {
+        headless: true,
+        args: ["--no-sandbox"],
+    },
 });
 client.on("qr", (qr) => {
     //qrcode.generate(qr, { small: true });
     generateImage(qr);
 });
 client.on("authenticated", () => {
-    console.log("authenticated succesfully");
+    console.log(" => authenticated succesfully");
 });
 client.on("ready", () => {
-    console.log("/send-whatsapp endpoint is ready!");
+    console.log(" => /send-whatsapp endpoint is ready!");
 });
 client.on("message", (msg) => {
     if (msg.body == "!up") {
@@ -59,5 +63,5 @@ app.post("/send-whatsapp", (req, res) => {
 });
 
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+    console.log(` => server running on port ${port}`);
 });

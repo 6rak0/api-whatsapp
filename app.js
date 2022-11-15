@@ -15,7 +15,8 @@ const generateImage = (base64) => {
 
 const sendMsg = async (phone, message) => {
     try {
-        const response = await client.sendMessage(`${phone}@c.us`, message);
+        const Message = await client.sendMessage(`${phone}@c.us`, message);
+        const response = await Message.getInfo();
         return response;
     } catch (error) {
         return error;
@@ -39,11 +40,11 @@ client.on("authenticated", () => {
     console.log(" => authenticated succesfully");
 });
 client.on("ready", () => {
-    console.log(" => /send-whatsapp endpoint is ready!");
+    console.log(" => /wa endpoint is ready!");
 });
 client.on("message", (msg) => {
-    if (msg.body == "!up") {
-        msg.reply("yes, i'm up");
+    if (msg.body == "!online") {
+        msg.reply("all services online");
     }
 });
 client.initialize();
@@ -57,9 +58,10 @@ app.get("/qr", (req, res) => {
     fs.createReadStream(`${__dirname}/temp/qr.svg`).pipe(res);
 });
 
-app.post("/send-whatsapp", (req, res) => {
+app.post("/wa", async (req, res) => {
     const { phone, message } = req.body;
-    res.send(sendMsg(phone, message));
+    const response = await sendMsg(phone, message);
+    res.json(response);
 });
 
 app.listen(port, () => {

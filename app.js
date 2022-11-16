@@ -15,11 +15,17 @@ const generateImage = (base64) => {
 
 const sendMsg = async (phone, message) => {
     try {
-        const Message = await client.sendMessage(`${phone}@c.us`, message);
-        const response = await Message.getInfo();
-        return response;
+        await client.sendMessage(`${phone}@c.us`, message);
+        return {
+            message: "ok",
+            status: 200,
+        };
     } catch (error) {
-        return error;
+        return {
+            message: "fail",
+            status: 400,
+            error,
+        };
     }
 };
 
@@ -60,8 +66,7 @@ app.get("/qr", (req, res) => {
 
 app.post("/wa", async (req, res) => {
     const { phone, message } = req.body;
-    const response = await sendMsg(phone, message);
-    res.json(response);
+    res.json(await sendMsg(phone, message));
 });
 
 app.listen(port, () => {

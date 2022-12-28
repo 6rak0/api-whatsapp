@@ -12,6 +12,7 @@
   "author": "6rak0",
   "license": "ISC",
   "dependencies": {
+    "@adiwajshing/baileys": "^4.4.0",
     "axios": "^1.2.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",

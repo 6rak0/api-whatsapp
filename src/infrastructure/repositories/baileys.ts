@@ -2,6 +2,7 @@ import makeWASocket, {
   useMultiFileAuthState,
   DisconnectReason,
 } from "@adiwajshing/baileys";
+import { image } from "qr-image";
 import MessageExternal from "../../domain/message.external.repository";
 
 class Baileys implements MessageExternal {
@@ -12,12 +13,15 @@ class Baileys implements MessageExternal {
     async connect(){
         const { state, saveCreds } = await useMultiFileAuthState(".baileys_auth");
         this.sock = makeWASocket({
-          printQRInTerminal: true,
+          printQRInTerminal: false,
           auth: state,
         });
         this.sock.ev.on("creds.update", saveCreds);
         this.sock.ev.on("connection.update", (update: any) => {
-          const { connection, lastDisconnect } = update;
+          const { connection, lastDisconnect, qr } = update;
+          if (qr) {
+            this.generateImage(qr)
+          }
           if (connection === "close") {
             const shouldReconnect =
               lastDisconnect.error?.output?.statusCode !==
@@ -65,15 +69,12 @@ class Baileys implements MessageExternal {
     }
   }
 
-//   private generateImage = (base64: string) => {
-//     const path = `${process.cwd()}/temp`;
-//     let qr_svg = image(base64, { type: "svg", margin: 4 });
-//     qr_svg.pipe(require("fs").createWriteStream(`${path}/qr.svg`));
-//     console.log(` => scan code in /qr`);
-//   };
-//   private qrterminal = (base64: string) => {
-//     qrcode.generate(base64, { small: true });
-//   };
+  private generateImage = (base64: string) => {
+    const path = `${process.cwd()}/temp`;
+    let qr_svg = image(base64, { type: "svg", margin: 4 });
+    qr_svg.pipe(require("fs").createWriteStream(`${path}/qr.svg`));
+    console.log(` => scan code in /qr`);
+  };
 }
 
 export default Baileys;

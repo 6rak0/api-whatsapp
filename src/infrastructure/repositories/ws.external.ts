@@ -30,8 +30,8 @@ class WsTransporter extends Client implements MessageExternal {
     });
 
     this.on("qr", (qr) => {
-      this.qrterminal(qr)
-      //this.generateImage(qr)
+      //this.qrterminal(qr)
+      this.generateImage(qr)
     });
   }
 
